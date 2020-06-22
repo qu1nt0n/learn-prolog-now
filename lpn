@@ -1,0 +1,139 @@
+第一章
+事实，规则，查询
+读完这章内容应当达到以下两个方面的目标：
+    通过给出一些简单的Prolog代码，来引入构成Prolog最基础的三大要素：事实，规则，查询。同时也会向大家介绍一些其它的主题，比如，逻辑在Prolog的作用，通过变量来表达统一概念等。
+    通过定义项，原子，变量和其它语法概念来开始系统的学习Prolog.
+1.1
+一些简单的例子
+Prolog只有三种基本的结构：事实，规则和查询。
+事实，规则的集合叫知识库（或叫数据库），编写Prolog程序就是写一些知识库而已。
+就是说，Prolog程序仅仅就是基于一些描述了我们所关注的一些关系的知识库。
+我们如何通过Prolog程序的运行而获得我们想要的东西呢？
+那就是给出查询。
+即，通过向知识库提问。
+现在说的这一切对于你来说，可能会显得比较奇怪。
+这让Prolog程序看起来好像根本没做什么事，难道程序不需要告诉计算如何去运行么？
+但是就像我们将要看到的，用Prolog编程方式得到的程序可以做很多事，至少在某些方面这一点显得更突出（一个最重要的应用例子是计算自然语言学）。
+与其这样泛泛介绍Prolog的方方面面，不如让我们直接开始写一些简单的知识库；这不但是最好的学习Prolog的方法，也是唯一的方法......
+1.1.1
+知识库1
+知识库1只包含了一些简单的事实。
+事实通常用来陈述所关注领域内无条件为真的一些东西
+例如，我们可以声明Mia，Jody，和Yolanda是woman，而且Jody会playsAirGuitar，通过以下四个事实：
+woman(mia).
+woman(jody).
+woman(yolanda).
+playsAirGuitar(jody).
+这些事实的集合我们称为KB1。
+它就是我们第一个Prolog程序。
+注意，我们只是写下了名字mia，jody，yolanda，和属性woman，playsAirGuitar，而且它们的第一个字母都是小写。
+这很重要；我们马上就会解释为什么是小写字母。
+如何用KB1？当然是提出查询了。即，对知识库中的信息提出问题。下面有一些例子。我们可以问Prolog如下查询：mia是woman吗？
+?- woman(mia).
+Prolog将会回答：
+yes
+显然这是KB1中诸多事实中的一项。顺便提一下，我们不需要输入?-。这个符号（或者类似这样的符号，这依赖于你使用Prolog的实现）是个提示符号，表明Prolog解释器正在等待运行一个查询。我们只要输入实际的查询（例如woman(mia)）后面跟一个.（表示结束了全部的查询）就可以了。
+类似的，可以问一下Prolog，是否Jody会playsAirGuitar，通过如下的查询：
+?- playsAirGuitar(jody).
+Prolog又会再一次回答yes，因为这也是KB1中的一个事实。然而，如果问mia会playsAirGuitar么？
+?- playsAirGuitar(mia).
+我们将得到：
+no
+为什么？因为这不是KB1中的一个实事。而且，KB1是一个极度简单的知识库，不包含其它可能帮助Prolog试图推导出mia是否会playsAirGuitar的信息（比如我们马上将要学习的规则）。因此，Prolog可以正确的得出playsAirGuitar(mia)不能由KB1中的信息导出的结论。
+再给出两个重要的例子。假想我们给出如下的查询：
+?- playsAirGuitar(vincent).
+Prolog又一次给出no。为什么呢？好吧，这个查询是关于一个叫vincent的人，他在KB1中没有任何的信息，所以马上可以得出结论，playsAirGuitar(vincent)不能由KB1中的信息导出。
+类似的，假想我们给出如下查询：
+?- tatooed(jody).
+又一次Prolog给出了no。为什么？好吧，这次的查询是关于一个属性（被tatooed），而KB1中没有关于这个属性的任何的信息，因此，又一次我们可以得出结论，本次查询结果不能由KB1中的信息导出。
+1.1.2
+知识库2
+我们的第二个知识库KB2如下：
+listensToMusic(mia).
+happy(yolanda).
+playsAirGuitar(mia) :- listensToMusic(mia).
+playsAirGuitar(yolanda) :- listensToMusic(yolanda).
+listensToMusic(yolanda):- happy(yolanda).
+KB2包含2个事实，listensToMusic(mia)和happy(yolanda)。后面的三个项是规则。
+规则声明了某一特定领域的一些信息，它在某个条件成立的时候这些信息是真的。例如，上面第一条规则说，如果listensToMusic（mia）真，那么playsAirGuitar(mia)也真，最后一条规则说，如果happy（yolanda）真，那么listensToMusic(yolanda)也真。更一般的，:-应当被读作如果，或者被蕴含于。:-的左边部分叫作规则头，右边部分叫作规则体。
+规则说明了这样一件事：如果规则体是真，那么规则头也为真。现在来看重点：如果一个知识库包含规则head:-body，而且Prolog从知识库的信息可以导出body是真的，那么Prolog可以推导出head也是真的。
+这种最基本的推导就是逻辑中的假言推理。看下面这个例子。我们问是否playsAirGuitar(mia)：
+?- playsAirGuitar(mia).
+Prolog回答是。为什么，因为，尽管playsAirGuitar(mia)不是KB2中的一个显式的实事，但KB2中有一规则
+playsAirGuitar(mia) :- listensToMusic(mia).
+而且，KB2还包含了listensToMusic(mia)这样一个实事。所以，Prolog可以使用假言推理来推导出playsAirGuitar(mia)为真。我们的下一个例子显示出Prolog还可以使用假言推理链，假设我们做如下查询：
+?- playsAirGuitar(yolanda).
+Prolog也将回答是。为什么，因为用事实happy(yolanda)和规则
+listensToMusic(yolanda):- happy(yolanda),
+Prolog可以推导出新的事实listensToMusic(yolanda)。
+这个新的实事不是显式的记录在知识库中的。它仅是被隐含的表达出来（它可以由已有知识推导出来）。然而，Prolog可像使用知识库中显式记录的事实一样，使用这些推导出来的隐含的事实。因此，再一次使用规则playsAirGuitar(yolanda) :- listensToMusic(yolanda)，可以推导出playsAirGuitar(yolanda)这个事实，而这正好是我们上面提出的查询。总结起来，任何通过应用假言推理得到的事实，都可以进一步作为规则的输入。通过这种假言推理链，Prolog具备了通过知识库中记录的事实和规则，逻辑推理出结论信息的能力。
+记录在知识库中的事实和规则统一叫作句子。因此，KB2中有5个句子，3个规则和2个事实。从另一个角度来看KB2，可以说它包含了3个谓词（或过程）。这3个谓词分别是：
+listensToMusic
+happy
+playsAirGuitar
+谓词happy用一个简单的事实句子来定义。listensToMusic和playsAirGuitar两个谓词都是通过两个规则句子来定义的。从Prolog程序中包含的谓词来理解程序本身是个好注意。谓词对于Prolog程序来说是非常重要的概念，我们写下的各种各样和谓词相关的句子，就是为了准确表达它们的含义和它们之间的关系。最后提示一下，我们可以把一个事实也看成一个规则，只不过它的body是空的。也就是说，我们认为，事实是不需要任何先决条件成立的，或者说事实是一种退化了规则。
+1.1.3
+Knowledge Base 3
+KB3, our third knowledge base, consists of five clauses:
+happy(vincent).
+listensToMusic(butch).
+playsAirGuitar(vincent):-
+listensToMusic(vincent),
+happy(vincent).
+playsAirGuitar(butch):-
+happy(butch).
+playsAirGuitar(butch):-
+listensToMusic(butch).
+There are two facts, namely happy(vincent) and listensToMusic(butch) , and
+three rules.
+KB3 defines the same three predicates as KB2 (namely happy , listensToMusic , and
+playsAirGuitar ) but it defines them differently. In particular, the three rules that
+define the playsAirGuitar predicate introduce some new ideas. First, note that the
+ruleplaysAirGuitar(vincent):-
+listensToMusic(vincent),
+happy(vincent).
+has two items in its body, or (to use the standard terminology) two goals. What does
+this rule mean? The important thing to note is the comma , that separates the goal
+listensToMusic(vincent) and the goal happy(vincent) in the rule’s body. This is
+the way logical conjunction is expressed in Prolog (that is, the comma means and). So
+this rule says: “Vincent plays air guitar if he listens to music and he is happy”.
+Thus, if we posed the query
+?- playsAirGuitar(vincent).
+Prolog would answer “no”. This is because while KB3 contains happy(vincent) , it
+does not explicitly contain the information listensToMusic(vincent) , and this fact
+cannot be deduced either. So KB3 only fulfils one of the two preconditions needed to
+establish playsAirGuitar(vincent) , and our query fails.
+Incidentally, the spacing used in this rule is irrelevant. For example, we could have
+written it as
+playsAirGuitar(vincent):- happy(vincent),listensToMusic(vincent).
+and it would have meant exactly the same thing. Prolog offers us a lot of freedom in
+the way we set out knowledge bases, and we can take advantage of this to keep our
+code readable.
+Next, note that KB3 contains two rules with exactly the same head, namely:
+playsAirGuitar(butch):-
+happy(butch).
+playsAirGuitar(butch):-
+listensToMusic(butch).
+This is a way of stating that Butch plays air guitar if either he listens to music, or if
+he is happy. That is, listing multiple rules with the same head is a way of expressing
+logical disjunction (that is, it is a way of saying or). So if we posed the query
+?- playsAirGuitar(butch).
+Prolog would answer “yes”. For although the first of these rules will not help (KB3
+does not allow Prolog to conclude that happy(butch) ), KB3 does contain listensToMusi
+and this means Prolog can apply modus ponens using the rule
+playsAirGuitar(butch):-
+listensToMusic(butch).to conclude that playsAirGuitar(butch) .
+There is another way of expressing disjunction in Prolog. We could replace the pair of
+rules given above by the single rule
+playsAirGuitar(butch):-
+happy(butch);
+listensToMusic(butch).
+That is, the semicolon ; is the Prolog symbol for or, so this single rule means exactly
+the same thing as the previous pair of rules. But Prolog programmers usually write
+multiple rules, as extensive use of semicolon can make Prolog code hard to read.
+It should now be clear that Prolog has something do with logic: after all, the :- means
+implication, the , means conjunction, and the ; means disjunction. (What about nega-
+tion? That is a whole other story. We’ll be discussing it later in the course.) Moreover,
+we have seen that a standard logical proof rule (modus ponens) plays an important role
+in Prolog programming. And in fact “Prolog” is short for “Programming in logic”.
+
